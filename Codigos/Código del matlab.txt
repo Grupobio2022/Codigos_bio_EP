@@ -1,0 +1,10 @@
+data = readtable("0004_EMG\0004_EMG__1" + ".csv");
+data = table2array(data);
+Time = 0:1/1000:numel(data)*1/1000-1/1000;
+plot(Time,data)
+[csf,f]=cwt(data,1000);
+imagesc(Time,f,abs(csf))
+xlabel("Time")
+ylabel("Frequency")
+axis xy
+title "CWT"

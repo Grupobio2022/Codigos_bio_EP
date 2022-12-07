@@ -1,0 +1,46 @@
+#define cbi(sfr, bit) (_SFR_BYTE(sfr) &=~(1<<bit))
+#define sbi(sfr, bit) (_SFR_BYTE(sfr) |=(1<<bit))
+ int s ;
+ double valor_anag;
+ void setup()
+ {
+ Serial.begin(115200);  
+ ConfiguraADC();
+ DDRC=0x00;
+ }
+ 
+ void loop()
+ {
+   s = LeeADC();
+   valor_anag=(double)s*5/1024;
+   Serial.print(valor_anag);
+ }
+int LeeADC(){
+  // Empieza la conversion
+ sbi(ADCSRA, ADSC);
+ // Esperamos a que muestree, leyendo el flag
+ while( !(ADCSRA & (1<<ADIF)) );
+ sbi(ADCSRA, ADIF); // Reiniciamos el flag
+ //SE LEE EL RESULTADO CON EL REGISTRO ADCH DE 10 BITS
+ s = ADCH;
+ return s;
+ //s = analogRead(A0);
+}
+void ConfiguraADC(){
+  //deshabilitamos ADC
+ cbi(ADCSRA, ADEN);
+ //definicion de preescalador a 128
+ sbi(ADCSRA, ADPS2);
+ sbi(ADCSRA, ADPS1);
+ sbi(ADCSRA, ADPS0);
+ //seteo de 10 bits, left adjust result
+ cbi(ADMUX, ADLAR);
+ // Seleccion del canal del ADC //
+ ADMUX &= (0xF0<<MUX0);
+ ADMUX |= (0x01<<MUX0); //#canal=3 ADC a usar
+ //Seteamos AVcc=Vcc como referencia
+ sbi(ADMUX, REFS0);
+ // Encendemos el ADC
+ sbi(ADCSRA, ADEN);
+ _delay_us(100); // tiempo de espera para inicializacion
+}
